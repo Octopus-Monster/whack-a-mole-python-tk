@@ -29,7 +29,7 @@ class WhackAMoleGame:
         for i in range(5):
             row_buttons = []
             for j in range(5):
-                button = tk.Button(self.root, width=300, height=300, state=tk.DISABLED, command=lambda i=i, j=j: self.button_click(i, j))
+                button = tk.Button(self.root, width=100, height=100, state=tk.DISABLED, command=lambda i=i, j=j: self.button_click(i, j))
                 button.grid(row=i+1, column=j, padx=5, pady=5)
                 row_buttons.append(button)
             self.buttons.append(row_buttons)
@@ -91,7 +91,7 @@ class WhackAMoleGame:
                 elif self.moles[i][j] == 4:
                     self.buttons[i][j].config(image=self.hit_rabbit_image, state=tk.NORMAL)
 
-        self.root.after(500, self.update_moles_random)
+        self.root.after(2000, self.update_moles_random)
 
     def update_moles_random(self):
         for i in range(5):
