@@ -26,9 +26,9 @@ class WhackAMoleGame:
         self.start_button.grid(row=0, column=2, padx=10, pady=10)
 
         self.buttons = []
-        for i in range(5):
+        for i in range(4):
             row_buttons = []
-            for j in range(5):
+            for j in range(4):
                 button = tk.Button(self.root, width=100, height=100, state=tk.DISABLED, command=lambda i=i, j=j: self.button_click(i, j))
                 button.grid(row=i+1, column=j, padx=5, pady=5)
                 row_buttons.append(button)
@@ -52,9 +52,7 @@ class WhackAMoleGame:
                 button.config(state=tk.NORMAL)
 
     def start_game(self):
-        self.score = 0
         self.update_score_label()
-        self.time_remaining = 60
         self.update_time_label()
         self.enable_buttons()
         self.root.after(1000, self.update_time)
@@ -78,8 +76,8 @@ class WhackAMoleGame:
         self.score_label.config(text=f"分数: {self.score}")
 
     def update_moles(self):
-        for i in range(5):
-            for j in range(5):
+        for i in range(4):
+            for j in range(4):
                 if self.moles[i][j] == 0:
                     self.buttons[i][j].config(image=self.hole_image, state=tk.NORMAL)
                 elif self.moles[i][j] == 1:
@@ -91,7 +89,7 @@ class WhackAMoleGame:
                 elif self.moles[i][j] == 4:
                     self.buttons[i][j].config(image=self.hit_rabbit_image, state=tk.NORMAL)
 
-        self.root.after(2000, self.update_moles_random)
+        self.root.after(3000, self.update_moles_random)
 
     def update_moles_random(self):
         for i in range(5):
