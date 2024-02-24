@@ -1,119 +1,121 @@
 import tkinter as tk
-import random
 from tkinter import messagebox
-from PIL import Image, ImageTk
+import random
 
-class WhackAMoleGame:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("打地鼠游戏")
+# 创建主窗口
+window = tk.Tk()
+window.title("打地鼠游戏")
+window.geometry("500x500")
 
-        self.score = 0
-        self.time_remaining = 60
-        self.moles = []
+# 定义全局变量
+score = 0  # 分数
+time = 60  # 倒计时
+running = False  # 游戏状态
+mole_state = {}  # 按钮状态
+mole_image = {}  # 按钮图片
 
-        self.create_widgets()
-        self.disable_buttons()
+# 定义按钮图片
+mole_image["hole"] = tk.PhotoImage(file="pic\\hole.png")  # 洞穴图片
+mole_image["mole"] = tk.PhotoImage(file="pic\\mole.png")  # 地鼠图片
+mole_image["hit_mole"] = tk.PhotoImage(file="pic\\hit_mole.png")  # 地鼠打中图片
+mole_image["rabbit"] = tk.PhotoImage(file="pic\\rabbit.png")  # 兔子图片
+mole_image["hit_rabbit"] = tk.PhotoImage(file="pic\\hit_rabbit.png")  # 兔子打中图片
 
-    def create_widgets(self):
-        self.score_label = tk.Label(self.root, text="分数: 0")
-        self.score_label.grid(row=0, column=0, padx=10, pady=10)
 
-        self.time_label = tk.Label(self.root, text="倒计时: 60秒")
-        self.time_label.grid(row=0, column=1, padx=10, pady=10)
+# 定义开始游戏函数
+def start_game():
+    global running, time, score
+    if not running:  # 如果游戏未开始
+        running = True  # 设置游戏状态为开始
+        time = 60  # 重置倒计时
+        score = 0  # 重置分数
+        update_time()  # 更新倒计时显示
+        update_score()  # 更新分数显示
+        update_mole()  # 更新按钮状态
 
-        self.start_button = tk.Button(self.root, text="开始游戏", command=self.start_game)
-        self.start_button.grid(row=0, column=2, padx=10, pady=10)
 
-        self.buttons = []
-        for i in range(4):
-            row_buttons = []
-            for j in range(4):
-                button = tk.Button(self.root, width=100, height=100, state=tk.DISABLED, command=lambda i=i, j=j: self.button_click(i, j))
-                button.grid(row=i+1, column=j, padx=5, pady=5)
-                row_buttons.append(button)
-            self.buttons.append(row_buttons)
+# 定义更新倒计时函数
+def update_time():
+    global running, time
+    if running:  # 如果游戏正在进行
+        time -= 1  # 倒计时减一秒
+        time_label.config(text=f"倒计时: {time} 秒")  # 更新倒计时显示
+        if time > 0:  # 如果倒计时未结束
+            window.after(1000, update_time)  # 一秒后再次调用该函数
+        else:  # 如果倒计时结束
+            running = False  # 设置游戏状态为结束
+            tk.messagebox.showinfo("游戏结束", f"你的最终得分是: {score} 分")  # 弹出提示框显示最终得分
 
-        # Load images
-        self.hole_image = ImageTk.PhotoImage(Image.open("pic\\hole.png"))
-        self.mole_image = ImageTk.PhotoImage(Image.open("pic\\mole.png"))
-        self.hit_mole_image = ImageTk.PhotoImage(Image.open("pic\\hit_mole.png"))
-        self.rabbit_image = ImageTk.PhotoImage(Image.open("pic\\rabbit.png"))
-        self.hit_rabbit_image = ImageTk.PhotoImage(Image.open("pic\\hit_rabbit.png"))
 
-    def disable_buttons(self):
-        for row in self.buttons:
-            for button in row:
-                button.config(state=tk.DISABLED)
+# 定义更新分数函数
+def update_score():
+    global score
+    score_label.config(text=f"分数: {score}")  # 更新分数显示
 
-    def enable_buttons(self):
-        for row in self.buttons:
-            for button in row:
-                button.config(state=tk.NORMAL)
 
-    def start_game(self):
-        self.update_score_label()
-        self.update_time_label()
-        self.enable_buttons()
-        self.root.after(1000, self.update_time)
-        self.moles = [[0 for _ in range(5)] for _ in range(5)]
-        self.update_moles()
+# 定义更新按钮状态函数
+def update_mole():
+    global running, mole_state
+    if running: # 如果游戏正在进行
+        # 定义一个空列表，用来存放随机选出的按钮索引
+        random_index = []
+        # 随机选出3个地鼠按钮
+        random_index += random.sample(range(16), 3)
+        # 随机选出1个兔子按钮，且不能与地鼠按钮重复
+        random_index += random.sample(list(set(range(16)) - set(random_index)), 1)
+        # 遍历所有按钮
+        for i in range(16):
+            # 如果按钮索引在随机列表中
+            if i in random_index:
+                # 根据索引位置设置按钮状态为地鼠或兔子
+                mole_state[i] = "mole" if random_index.index(i) < 3 else "rabbit"
+            else: # 如果按钮索引不在随机列表中
+                # 设置按钮状态为洞穴
+                mole_state[i] = "hole"
+            # 更新按钮图片
+            mole_button[i].config(image=mole_image[mole_state[i]])
+        # 三秒后再次调用该函数
+        window.after(1500, update_mole)
 
-    def update_time(self):
-        self.time_remaining -= 1
-        self.update_time_label()
-        if self.time_remaining > 0:
-            self.root.after(1000, self.update_time)
-            self.update_moles()
-        else:
-            self.disable_buttons()
-            messagebox.showinfo("游戏结束", f"游戏结束！你的得分是 {self.score} 分")
 
-    def update_time_label(self):
-        self.time_label.config(text=f"倒计时: {self.time_remaining}秒")
+# 定义点击按钮函数
+def hit_mole(i):
+    global running, score, mole_state
+    if running:  # 如果游戏正在进行
+        if mole_state[i] == "mole":  # 如果点击的是地鼠
+            score += 5  # 分数加五分
+            mole_state[i] = "hit_mole"  # 设置按钮状态为地鼠打中
+            mole_button[i].config(image=mole_image[mole_state[i]])  # 更新按钮图片
+            update_score()  # 更新分数显示
+        elif mole_state[i] == "rabbit":  # 如果点击的是兔子
+            score -= 10  # 分数减十分
+            mole_state[i] = "hit_rabbit"  # 设置按钮状态为兔子打中
+            mole_button[i].config(image=mole_image[mole_state[i]])  # 更新按钮图片
+            update_score()  # 更新分数显示
 
-    def update_score_label(self):
-        self.score_label.config(text=f"分数: {self.score}")
 
-    def update_moles(self):
-        for i in range(4):
-            for j in range(4):
-                if self.moles[i][j] == 0:
-                    self.buttons[i][j].config(image=self.hole_image, state=tk.NORMAL)
-                elif self.moles[i][j] == 1:
-                    self.buttons[i][j].config(image=self.mole_image, state=tk.NORMAL)
-                elif self.moles[i][j] == 2:
-                    self.buttons[i][j].config(image=self.hit_mole_image, state=tk.NORMAL)
-                elif self.moles[i][j] == 3:
-                    self.buttons[i][j].config(image=self.rabbit_image, state=tk.NORMAL)
-                elif self.moles[i][j] == 4:
-                    self.buttons[i][j].config(image=self.hit_rabbit_image, state=tk.NORMAL)
+# 创建开始游戏按钮
+start_button = tk.Button(window, text="开始游戏", command=start_game)
+start_button.place(x=200, y=50)
 
-        self.root.after(3000, self.update_moles_random)
+# 创建分数显示标签
+score_label = tk.Label(window, text=f"分数: {score}")
+score_label.place(x=20, y=100)
 
-    def update_moles_random(self):
-        for i in range(5):
-            for j in range(5):
-                if random.random() < 0.2:
-                    self.moles[i][j] = random.choice([1, 3])
-                else:
-                    self.moles[i][j] = 0
-        self.update_moles()
+# 创建倒计时显示标签
+time_label = tk.Label(window, text=f"倒计时: {time} 秒")
+time_label.place(x=20, y=130)
 
-    def button_click(self, row, col):
-        button_state = self.moles[row][col]
-        if button_state == 1:
-            self.moles[row][col] = 2
-            self.score += 5
-            self.update_score_label()
-        elif button_state == 3:
-            self.moles[row][col] = 4
-            self.score -= 10
-            self.update_score_label()
+# 创建16个方格按钮
+mole_button = []
+for i in range(16):
+    x = (i % 4 + 1) * 100  # 计算按钮的横坐标
+    y = (i // 4 + 1) * 100  # 计算按钮的纵坐标
+    mole_state[i] = "hole"  # 初始化按钮状态为洞穴
+    button = tk.Button(window, image=mole_image[mole_state[i]])  # 创建按钮，初始为不可点击状态
+    button.place(x=x, y=y)  # 放置按钮
+    button.bind("<Button-1>", lambda event, i=i: hit_mole(i))  # 绑定点击事件
+    mole_button.append(button)  # 将按钮添加到列表中
 
-        self.update_moles()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    game = WhackAMoleGame(root)
-    root.mainloop()
+# 进入主循环
+window.mainloop()
